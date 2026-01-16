@@ -37,6 +37,25 @@ def save_tasks(data):
     except IOError as e:
         print(f"Error saving tasks: {e}", file=sys.stderr)
 
+def get_next_id(tasks):
+    """
+    タスクのリストから次に使用するIDを取得する関数。
+    タスクが存在しない場合は1を返す。
+    引数:
+        tasks: タスクのリスト
+    返り値: 次に使用するID (整数)
+    """
+    if not tasks:
+        return 1
+    return max(task['id'] for task in tasks) + 1
+
+def get_timestamp():
+    """
+    現在の日時をISO 8601形式で取得する関数。
+    返り値: 現在の日時 (文字列)
+    """
+    return datetime.now().isoformat()
+
 def main():
     pass
 
