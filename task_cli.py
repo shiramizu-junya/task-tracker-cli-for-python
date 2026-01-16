@@ -78,16 +78,46 @@ def add_task(description):
     save_tasks(data)
     print(f"Task added successfully (ID: {new_id})")
 
+def list_tasks(status_filter=None):
+    """
+    タスクを一覧表示する関数。
+    引数:
+        status_filter: フィルタリングするステータス (文字列、オプション)
+    """
+    data = load_tasks()
+    tasks = data['tasks']
+
+    if status_filter:
+        tasks = [task for task in tasks if task['status'] == status_filter]
+
+    if not tasks:
+        print("No tasks found.")
+        return
+
+    for task in tasks:
+        print(f"ID: {task['id']}, Description: {task['description']}, Status: {task['status']}, CreatedAt: {task['createdAt']}, UpdatedAt: {task['updatedAt']}")
+
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: task_cli.py <command> <task_description>", file=sys.stderr)
-        sys.exit(1)
+    if len(sys.argv) < 2:
+        print("Usage: task_cli.py <command> [<args>]")
+        print("Commands:")
+        print("  add <description>    Add a new task")
+        print("  list [<status>]      List tasks, optionally filtered by status")
+        return
 
     command = sys.argv[1]
-    task_description = sys.argv[2]
 
     if command == 'add':
-        add_task(task_description)
+        if len(sys.argv) < 3:
+            print("Usage: task_cli.py add <description>")
+            return
+        description = sys.argv[2]
+        add_task(description)
+    elif command == 'list':
+        status_filter = sys.argv[2] if len(sys.argv) >= 3 else None
+        list_tasks(status_filter)
+    else:
+        print(f"Unknown command: {command}")
 
 if __name__ == '__main__':
     main()
