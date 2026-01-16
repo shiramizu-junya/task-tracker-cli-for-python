@@ -56,8 +56,38 @@ def get_timestamp():
     """
     return datetime.now().isoformat()
 
+def add_task(description):
+    """
+    新しいタスクを追加する関数。
+    引数:
+        description: タスクの説明 (文字列)
+    """
+    data = load_tasks()
+    new_id = get_next_id(data['tasks'])
+    now = get_timestamp()
+
+    new_task = {
+        'id': new_id,
+        'description': description,
+        'status': 'todo',
+        'createdAt': now,
+        'updatedAt': now,
+    }
+
+    data['tasks'].append(new_task)
+    save_tasks(data)
+    print(f"Task added successfully (ID: {new_id})")
+
 def main():
-    pass
+    if len(sys.argv) != 3:
+        print("Usage: task_cli.py <command> <task_description>", file=sys.stderr)
+        sys.exit(1)
+
+    command = sys.argv[1]
+    task_description = sys.argv[2]
+
+    if command == 'add':
+        add_task(task_description)
 
 if __name__ == '__main__':
     main()
