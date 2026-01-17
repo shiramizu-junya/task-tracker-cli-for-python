@@ -123,6 +123,7 @@ def main():
         print("Commands:")
         print("  add <description>    Add a new task")
         print("  list [<status>]      List tasks, optionally filtered by status")
+        print("  update <task_id> <description>  Update an existing task")
         return
 
     command = sys.argv[1]
@@ -147,7 +148,7 @@ def main():
             print("Error: ID must be a number")
             return
 
-        description = sys.argv[3]
+        description = " ".join(sys.argv[3:])
         update_task(task_id, description)
     else:
         print(f"Unknown command: {command}")
