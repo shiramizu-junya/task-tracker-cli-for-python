@@ -127,6 +127,28 @@ def update_task(task_id, description):
     print(f"Error: Task with ID {task_id} not found", file=sys.stderr)
     sys.exit(1)
 
+def delete_task(task_id):
+    """
+    既存のタスクを削除する関数。
+    引数:
+        task_id: 削除するタスクのID (整数)
+    """
+    data = load_tasks()
+    tasks = data['tasks']
+
+    for i, task in enumerate(tasks):
+        if task['id'] == task_id:
+            del tasks[i]
+            try:
+                save_tasks(data)
+                print(f'Task {task_id} deleted successfully')
+            except IOError:
+                sys.exit(1)
+            return
+
+    print(f"Error: Task with ID {task_id} not found", file=sys.stderr)
+    sys.exit(1)
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: task_cli.py <command> [<args>]")
@@ -160,6 +182,18 @@ def main():
 
         description = " ".join(sys.argv[3:])
         update_task(task_id, description)
+    elif command == 'delete':
+        if len(sys.argv) < 3:
+            print("Usage: task_cli.py delete <task_id>")
+            return
+
+        try:
+            task_id = int(sys.argv[2])
+        except ValueError:
+            print("Error: ID must be a number")
+            return
+
+        delete_task(task_id)
     else:
         print(f"Unknown command: {command}")
 
