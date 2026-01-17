@@ -27,15 +27,18 @@ def load_tasks():
 def save_tasks(data):
     """
     タスクをJSONファイルに保存する関数。
-    例外が発生した場合はエラーメッセージを標準エラー出力に表示する。
+    例外が発生した場合はエラーメッセージを標準エラー出力に表示し、例外を再送出する。
     引数:
         data: { "tasks": [...] }
+    例外:
+        IOError: ファイルの書き込みに失敗した場合
     """
     try:
         with open(TASKS_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
     except IOError as e:
         print(f"Error saving tasks: {e}", file=sys.stderr)
+        raise
 
 def get_next_id(tasks):
     """
@@ -75,8 +78,11 @@ def add_task(description):
     }
 
     data['tasks'].append(new_task)
-    save_tasks(data)
-    print(f"Task added successfully (ID: {new_id})")
+    try:
+        save_tasks(data)
+        print(f"Task added successfully (ID: {new_id})")
+    except IOError:
+        sys.exit(1)
 
 def list_tasks(status_filter=None):
     """
@@ -111,11 +117,15 @@ def update_task(task_id, description):
         if task['id'] == task_id:
             task['description'] = description
             task['updatedAt'] = get_timestamp()
-            save_tasks(data)
-            print(f'Task {task_id} updated successfully')
+            try:
+                save_tasks(data)
+                print(f'Task {task_id} updated successfully')
+            except IOError:
+                sys.exit(1)
             return
 
-    print(f"Error: Task with ID {task_id} not found")
+    print(f"Error: Task with ID {task_id} not found", file=sys.stderr)
+    sys.exit(1)
 
 def main():
     if len(sys.argv) < 2:
@@ -132,7 +142,7 @@ def main():
         if len(sys.argv) < 3:
             print("Usage: task_cli.py add <description>")
             return
-        description = sys.argv[2]
+        description = " ".join(sys.argv[2:])
         add_task(description)
     elif command == 'list':
         status_filter = sys.argv[2] if len(sys.argv) >= 3 else None
