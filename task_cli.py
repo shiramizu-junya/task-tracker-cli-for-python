@@ -149,6 +149,34 @@ def delete_task(task_id):
     print(f"Error: Task with ID {task_id} not found", file=sys.stderr)
     sys.exit(1)
 
+def mark_task(task_id, status):
+    """
+    タスクのステータスを更新する関数。
+    引数:
+        task_id: 更新するタスクのID (整数)
+    """
+    data = load_tasks()
+    tasks = data['tasks']
+
+    for task in tasks:
+        if task['id'] == task_id:
+            if status == 'mark-in-progress':
+                task['status'] = 'in-progress'
+            elif status == 'mark-done':
+                task['status'] = 'done'
+
+            task['updatedAt'] = get_timestamp()
+
+            try:
+                save_tasks(data)
+                print(f'Task {task_id} marked as {task["status"]} successfully')
+            except IOError:
+                sys.exit(1)
+            return
+
+    print(f"Error: Task with ID {task_id} not found", file=sys.stderr)
+    sys.exit(1)
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: task_cli.py <command> [<args>]")
@@ -157,6 +185,8 @@ def main():
         print("  list [<status>]      List tasks, optionally filtered by status")
         print("  update <task_id> <description>  Update an existing task")
         print("  delete <task_id>  Delete a task")
+        print("  mark-in-progress <task_id>  Mark a task as in-progress")
+        print("  mark-done <task_id>  Mark a task as done")
         return
 
     command = sys.argv[1]
@@ -195,6 +225,18 @@ def main():
             sys.exit(1)
 
         delete_task(task_id)
+    elif command == 'mark-in-progress' or command == 'mark-done':
+        if len(sys.argv) < 3:
+            print("Usage: task_cli.py mark-in-progress|mark-done <task_id>")
+            return
+
+        try:
+            task_id = int(sys.argv[2])
+        except ValueError:
+            print("Error: ID must be a number", file=sys.stderr)
+            sys.exit(1)
+
+        mark_task(task_id, command)
     else:
         print(f"Unknown command: {command}")
 
