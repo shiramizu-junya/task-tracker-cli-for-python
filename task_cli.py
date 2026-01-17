@@ -97,6 +97,26 @@ def list_tasks(status_filter=None):
     for task in tasks:
         print(f"ID: {task['id']}, Description: {task['description']}, Status: {task['status']}, CreatedAt: {task['createdAt']}, UpdatedAt: {task['updatedAt']}")
 
+def update_task(task_id, description):
+    """
+    既存のタスクを更新する関数。
+    引数:
+        task_id: 更新するタスクのID (整数)
+        description: 新しいタスクの説明 (文字列)
+    """
+    data = load_tasks()
+    tasks = data['tasks']
+
+    for task in tasks:
+        if task['id'] == task_id:
+            task['description'] = description
+            task['updatedAt'] = get_timestamp()
+            save_tasks(data)
+            print(f'Task {task_id} updated successfully')
+            return
+
+    print(f"Error: Task with ID {task_id} not found")
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: task_cli.py <command> [<args>]")
@@ -116,6 +136,19 @@ def main():
     elif command == 'list':
         status_filter = sys.argv[2] if len(sys.argv) >= 3 else None
         list_tasks(status_filter)
+    elif command == 'update':
+        if len(sys.argv) < 4:
+            print("Usage: task_cli.py update <task_id> <description>")
+            return
+
+        try:
+            task_id = int(sys.argv[2])
+        except ValueError:
+            print("Error: ID must be a number")
+            return
+
+        description = sys.argv[3]
+        update_task(task_id, description)
     else:
         print(f"Unknown command: {command}")
 
