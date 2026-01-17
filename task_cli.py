@@ -27,15 +27,18 @@ def load_tasks():
 def save_tasks(data):
     """
     タスクをJSONファイルに保存する関数。
-    例外が発生した場合はエラーメッセージを標準エラー出力に表示する。
+    例外が発生した場合はエラーメッセージを標準エラー出力に表示し、例外を再送出する。
     引数:
         data: { "tasks": [...] }
+    例外:
+        IOError: ファイルの書き込みに失敗した場合
     """
     try:
         with open(TASKS_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
     except IOError as e:
         print(f"Error saving tasks: {e}", file=sys.stderr)
+        raise
 
 def get_next_id(tasks):
     """
@@ -75,8 +78,11 @@ def add_task(description):
     }
 
     data['tasks'].append(new_task)
-    save_tasks(data)
-    print(f"Task added successfully (ID: {new_id})")
+    try:
+        save_tasks(data)
+        print(f"Task added successfully (ID: {new_id})")
+    except IOError:
+        sys.exit(1)
 
 def list_tasks(status_filter=None):
     """
@@ -97,12 +103,37 @@ def list_tasks(status_filter=None):
     for task in tasks:
         print(f"ID: {task['id']}, Description: {task['description']}, Status: {task['status']}, CreatedAt: {task['createdAt']}, UpdatedAt: {task['updatedAt']}")
 
+def update_task(task_id, description):
+    """
+    既存のタスクを更新する関数。
+    引数:
+        task_id: 更新するタスクのID (整数)
+        description: 新しいタスクの説明 (文字列)
+    """
+    data = load_tasks()
+    tasks = data['tasks']
+
+    for task in tasks:
+        if task['id'] == task_id:
+            task['description'] = description
+            task['updatedAt'] = get_timestamp()
+            try:
+                save_tasks(data)
+                print(f'Task {task_id} updated successfully')
+            except IOError:
+                sys.exit(1)
+            return
+
+    print(f"Error: Task with ID {task_id} not found", file=sys.stderr)
+    sys.exit(1)
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: task_cli.py <command> [<args>]")
         print("Commands:")
         print("  add <description>    Add a new task")
         print("  list [<status>]      List tasks, optionally filtered by status")
+        print("  update <task_id> <description>  Update an existing task")
         return
 
     command = sys.argv[1]
@@ -111,11 +142,24 @@ def main():
         if len(sys.argv) < 3:
             print("Usage: task_cli.py add <description>")
             return
-        description = sys.argv[2]
+        description = " ".join(sys.argv[2:])
         add_task(description)
     elif command == 'list':
         status_filter = sys.argv[2] if len(sys.argv) >= 3 else None
         list_tasks(status_filter)
+    elif command == 'update':
+        if len(sys.argv) < 4:
+            print("Usage: task_cli.py update <task_id> <description>")
+            return
+
+        try:
+            task_id = int(sys.argv[2])
+        except ValueError:
+            print("Error: ID must be a number")
+            return
+
+        description = " ".join(sys.argv[3:])
+        update_task(task_id, description)
     else:
         print(f"Unknown command: {command}")
 
