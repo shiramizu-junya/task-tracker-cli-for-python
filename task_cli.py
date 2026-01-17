@@ -177,24 +177,34 @@ def mark_task(task_id, status):
     print(f"Error: Task with ID {task_id} not found", file=sys.stderr)
     sys.exit(1)
 
+def show_help():
+    help_text = """
+Task Tracker CLI - Usage:
+
+  python task_cli.py add "description"          Add a new task
+  python task_cli.py update <id> "description"  Update a task
+  python task_cli.py delete <id>                Delete a task
+  python task_cli.py mark-in-progress <id>      Mark task as in-progress
+  python task_cli.py mark-done <id>             Mark task as done
+  python task_cli.py list                       List all tasks
+  python task_cli.py list done                  List completed tasks
+  python task_cli.py list todo                  List pending tasks
+  python task_cli.py list in-progress           List in-progress tasks
+"""
+    print(help_text)
+
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: task_cli.py <command> [<args>]")
-        print("Commands:")
-        print("  add <description>    Add a new task")
-        print("  list [<status>]      List tasks, optionally filtered by status")
-        print("  update <task_id> <description>  Update an existing task")
-        print("  delete <task_id>  Delete a task")
-        print("  mark-in-progress <task_id>  Mark a task as in-progress")
-        print("  mark-done <task_id>  Mark a task as done")
+    if len(sys.argv) == 1:
+        show_help()
         return
 
     command = sys.argv[1]
 
     if command == 'add':
         if len(sys.argv) < 3:
-            print("Usage: task_cli.py add <description>")
-            return
+            print("Error: Please provide a task description", file=sys.stderr)
+            print("Usage: python task_cli.py add \"description\"")
+            sys.exit(1)
         description = " ".join(sys.argv[2:])
         add_task(description)
     elif command == 'list':
@@ -202,8 +212,9 @@ def main():
         list_tasks(status_filter)
     elif command == 'update':
         if len(sys.argv) < 4:
-            print("Usage: task_cli.py update <task_id> <description>")
-            return
+            print("Error: Please provide a task ID and description", file=sys.stderr)
+            print("Usage: python task_cli.py update <id> \"description\"")
+            sys.exit(1)
 
         try:
             task_id = int(sys.argv[2])
@@ -215,8 +226,9 @@ def main():
         update_task(task_id, description)
     elif command == 'delete':
         if len(sys.argv) < 3:
-            print("Usage: task_cli.py delete <task_id>")
-            return
+            print("Error: Please provide a task ID", file=sys.stderr)
+            print("Usage: python task_cli.py delete <id>")
+            sys.exit(1)
 
         try:
             task_id = int(sys.argv[2])
@@ -227,8 +239,9 @@ def main():
         delete_task(task_id)
     elif command == 'mark-in-progress' or command == 'mark-done':
         if len(sys.argv) < 3:
-            print("Usage: task_cli.py mark-in-progress|mark-done <task_id>")
-            return
+            print("Error: Please provide a task ID", file=sys.stderr)
+            print("Usage: python task_cli.py mark-in-progress|mark-done <id>")
+            sys.exit(1)
 
         try:
             task_id = int(sys.argv[2])
@@ -238,7 +251,9 @@ def main():
 
         mark_task(task_id, command)
     else:
-        print(f"Unknown command: {command}")
+        print(f"Error: Unknown command '{command}'", file=sys.stderr)
+        show_help()
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
