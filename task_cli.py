@@ -156,6 +156,7 @@ def main():
         print("  add <description>    Add a new task")
         print("  list [<status>]      List tasks, optionally filtered by status")
         print("  update <task_id> <description>  Update an existing task")
+        print("  delete <task_id>  Delete a task")
         return
 
     command = sys.argv[1]
@@ -177,8 +178,8 @@ def main():
         try:
             task_id = int(sys.argv[2])
         except ValueError:
-            print("Error: ID must be a number")
-            return
+            print("Error: ID must be a number", file=sys.stderr)
+            sys.exit(1)
 
         description = " ".join(sys.argv[3:])
         update_task(task_id, description)
@@ -190,8 +191,8 @@ def main():
         try:
             task_id = int(sys.argv[2])
         except ValueError:
-            print("Error: ID must be a number")
-            return
+            print("Error: ID must be a number", file=sys.stderr)
+            sys.exit(1)
 
         delete_task(task_id)
     else:
